@@ -171,8 +171,14 @@ Flock.prototype = {
             var hyp = this.hyphae(b);
             
             
-            b.a[0] = 1.5*hyp[0] + 1.5*sep[0] + coh[0] + align[0] + Math.random()*this._step*2 - this._step;
-            b.a[1] = 1.5*hyp[0] + 1.5*sep[1] + coh[1] + align[1] + Math.random()*this._step*2 - this._step;
+            b.a[0] =    params.flk_hyp * hyp[0] + 
+                        params.flk_sep * sep[0] + 
+                        params.flk_coh * coh[0] + 
+                        params.flk_alg * align[0] + Math.random()*this._step*2 - this._step;
+            b.a[1] =    params.flk_hyp * hyp[0] + 
+                        params.flk_sep * sep[1] + 
+                        params.flk_coh * coh[1] + 
+                        params.flk_alg * align[1] + Math.random()*this._step*2 - this._step;
         }
         
         for (var i=0; i<this.boids.length; i++) {

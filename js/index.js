@@ -21,6 +21,10 @@ var GUIParams = function() {
     this.flk_clear = function() { flock.clear(); };
     this.flk_add = function() { flock.addBoidsPreset(30, r, this.flk_preset); };
     this.flk_preset = "Scatter";
+    this.flk_sep = 1.5;
+    this.flk_alg = 1.0;
+    this.flk_coh = 1.0;
+    this.flk_hyp = 1.5;
     
     this.add = "Target (blue)";
     this.bounds = 0;
@@ -284,6 +288,11 @@ window.onload = function() {
     flk.add(params, 'flk_clear').name("Clear");
     flk.add(params, 'flk_add').name("Set Preset Boids");
     flk.add(params, 'flk_preset', [ 'Scatter', 'Circle', 'Line', 'Cross' ] ).name("Boid Preset");
+    
+    flk.add(params, 'flk_sep', 0.0, 3.0).name("Separation");
+    flk.add(params, 'flk_alg', 0.0, 3.0).name("Alignment");
+    flk.add(params, 'flk_coh', 0.0, 3.0).name("Cohesion");
+    flk.add(params, 'flk_hyp', 0.0, 3.0).name("Hyphae Velocity");
     flk.open();
 
     gui.add(params, 'add', [ 'Target (blue)', 'Boid (purple)', 'Root (orange)' ] ).name("Add");
