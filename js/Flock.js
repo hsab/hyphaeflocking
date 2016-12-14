@@ -189,6 +189,8 @@ Flock.prototype = {
             
             b.x += b.v[0];
             b.y += b.v[1];
+            
+            b.angle = Math.atan2(b.v[0], b.v[1]);
 
             if (params.bounds == 1) { 
                 var bounds_radius = 100;

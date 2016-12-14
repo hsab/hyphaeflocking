@@ -1,9 +1,9 @@
-var stats, scene, renderer;
-var camera, cameraControl;
+var stats, scene, renderer, loader;
+var camera, controls;
 
 var terrain;
 var hyphae, roots, targets;
-var flock, boids;
+var flock, boids, fish;
 
 var r = 300;
 var col = [0.8,0.8,0,0];
@@ -25,6 +25,7 @@ var GUIParams = function() {
     this.flk_alg = 1.0;
     this.flk_coh = 1.0;
     this.flk_hyp = 1.5;
+    this.flk_render = "Spheres";
     
     this.add = "Target (blue)";
     this.bounds = 0;
@@ -69,7 +70,32 @@ function init(){
     scene.add(camera);
 
     // create a camera contol
-    //cameraControls	= new THREEx.DragPanControls(camera)
+    //controls = new THREE.OrbitControls( camera, renderer.domElement );
+    
+    var directionalLight = new THREE.DirectionalLight( 0xffffff, 1.0 );
+    directionalLight.position.set( 1, 1, 1 );
+    scene.add( directionalLight );
+    
+    var fillLight = new THREE.DirectionalLight( 0xccddff, 0.6 );
+    fillLight.position.set( -1, -1, -1 );
+    scene.add( fillLight );
+    
+    var topLight = new THREE.DirectionalLight( 0xffff00, 0.3 );
+    topLight.position.set( 0, 0, 1 );
+    scene.add( topLight );
+    
+    var manager = new THREE.LoadingManager();
+
+    var loader = new THREE.OBJLoader(manager);
+    loader.load('assets/fish.obj', function (obj) {
+        var f_mat = new THREE.MeshLambertMaterial( {color: 0x9900ee} );
+        
+        fish = obj.children[0];
+        fish.material = f_mat;
+        fish.scale.set(15,15,15)
+        fish.position.z = 5;
+        fish.rotation.y = -Math.PI / 2;
+    });
 
     // transparently support window resize
     //THREEx.WindowResize.bind(renderer, camera);
@@ -178,31 +204,42 @@ function addRoot(x, y) {
     roots.push(root);
 }
 
-function drawBoids() {
+function drawBoids(forceRedraw, showFish) {
     var boid_pos = flock.boids;
-    if (boid_pos.length != boids.length) {
+    if (boid_pos.length != boids.length || forceRedraw) {
         for (var i=0; i<boids.length; i++) { scene.remove(boids[i]) }
         boids.length = 0;
         for (var i=0; i<boid_pos.length; i++) {
-            addBoid(boid_pos[i].x, boid_pos[i].y)
+            addBoid(boid_pos[i].x, boid_pos[i].y, showFish)
         }
     } else {
         for (var i=0; i<boids.length; i++) {
-            //console.log(boid_pos[i])
             boids[i].position.x = boid_pos[i].x;
             boids[i].position.y = boid_pos[i].y;
+            
+            boids[i].rotation.z = 2*Math.PI - boid_pos[i].angle;
+            //boids[i].rotation.y = Math.PI;
         }
     }
     
 }
-function addBoid(x, y) {
-    var b_geom = new THREE.SphereGeometry( 3, 6, 6 );
-    var b_mat = new THREE.MeshBasicMaterial( {color: 0x9900ee} );
-    var b = new THREE.Mesh( b_geom, b_mat );
+function addBoid(x, y, showFish) {
+    if (fish && showFish) {
+        var b = fish.clone(); 
+        b.material = fish.material.clone();
+    } else {
+        var b_geom = new THREE.SphereGeometry( 3, 6, 6 );
+        var b_mat = new THREE.MeshBasicMaterial( {color: 0x9900ee} );
+        var b = new THREE.Mesh( b_geom, b_mat );
+    }
+    
     b.position.x = x;
     b.position.y = y;
-    scene.add( b );
+    b.material.color.setRGB(153/255 + Math.random()*0.5-0.25, 
+                            0 + Math.random()*0.5, 
+                            238/255 + Math.random()*0.2-0.1);
     
+    scene.add( b );
     boids.push(b);
 }
 
@@ -226,7 +263,7 @@ function animate() {
 function render() {
 
     // update camera controls
-    //cameraControls.update();
+    //controls.update();
     
     if (params.hyphae) {
         hyphae.grow();
@@ -293,6 +330,15 @@ window.onload = function() {
     flk.add(params, 'flk_alg', 0.0, 3.0).name("Alignment");
     flk.add(params, 'flk_coh', 0.0, 3.0).name("Cohesion");
     flk.add(params, 'flk_hyp', 0.0, 3.0).name("Hyphae Velocity");
+    
+    var controller = gui.add(params, 'flk_render', ['Spheres', 'Fish']).name("Display");
+    controller.onFinishChange(function(value) {
+        if (value == "Fish") {
+            drawBoids(true, true);
+        } else {
+            drawBoids(true);
+        }
+    });
     flk.open();
 
     gui.add(params, 'add', [ 'Target (blue)', 'Boid (purple)', 'Root (orange)' ] ).name("Add");
